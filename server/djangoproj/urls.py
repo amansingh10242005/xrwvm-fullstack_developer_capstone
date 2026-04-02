@@ -7,14 +7,16 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # App routes
+    # Backend APIs
     path('djangoapp/', include('djangoapp.urls')),
 
+    # React Routes
     # Static pages
-    path('', TemplateView.as_view(template_name="Home.html"), name='home'),
-    path('about/', TemplateView.as_view(template_name="About.html"), name='about'),
-    path('contact/', TemplateView.as_view(template_name="Contact.html"), name='contact'),
-]
+    path('', TemplateView.as_view(template_name="Home.html")),
+    path('about/', TemplateView.as_view(template_name="About.html")),
+    path('contact/', TemplateView.as_view(template_name="Contact.html")),
 
-# Static files
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # React Routes
+    path('login/', TemplateView.as_view(template_name="index.html")),
+    path('register/', TemplateView.as_view(template_name="index.html")),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
