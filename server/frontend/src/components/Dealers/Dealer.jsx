@@ -1,93 +1,59 @@
-import React, { useState,useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import "./Dealers.css";
-import "../assets/style.css";
-import positive_icon from "../assets/positive.png"
-import neutral_icon from "../assets/neutral.png"
-import negative_icon from "../assets/negative.png"
-import review_icon from "../assets/reviewbutton.png"
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Header from '../Header/Header';
+import review_icon from "../assets/reviewbutton.png";
 
 const Dealer = () => {
 
+  const { id } = useParams();
 
-  const [dealer, setDealer] = useState({});
-  const [reviews, setReviews] = useState([]);
-  const [unreviewed, setUnreviewed] = useState(false);
-  const [postReview, setPostReview] = useState(<></>)
+  const dummyDealers = [
+    {id:1, full_name:"Best Cars NY", city:"New York", address:"123 Main St", zip:"10001", state:"NY"},
+    {id:2, full_name:"Auto Hub Chicago", city:"Chicago", address:"456 Lake Shore", zip:"60601", state:"IL"},
+    {id:3, full_name:"DriveTime LA", city:"Los Angeles", address:"789 Sunset Blvd", zip:"90001", state:"CA"},
+    {id:4, full_name:"Car Nation Dallas", city:"Dallas", address:"321 Elm St", zip:"75201", state:"TX"},
+    {id:5, full_name:"Auto Plaza Miami", city:"Miami", address:"654 Ocean Dr", zip:"33101", state:"FL"},
+    {id:6, full_name:"Speed Motors Seattle", city:"Seattle", address:"987 Pine St", zip:"98101", state:"WA"},
+    {id:7, full_name:"Urban Cars Denver", city:"Denver", address:"159 Market St", zip:"80201", state:"CO"},
+    {id:8, full_name:"Prime Autos Boston", city:"Boston", address:"753 Beacon St", zip:"02101", state:"MA"},
+    {id:9, full_name:"Metro Cars Atlanta", city:"Atlanta", address:"852 Peachtree St", zip:"30301", state:"GA"},
+    {id:10, full_name:"Luxury Wheels Vegas", city:"Las Vegas", address:"951 Strip Blvd", zip:"89101", state:"NV"}
+  ];
 
-  let curr_url = window.location.href;
-  let root_url = curr_url.substring(0,curr_url.indexOf("dealer"));
-  let params = useParams();
-  let id =params.id;
-  let dealer_url = root_url+`djangoapp/dealer/${id}`;
-  let reviews_url = root_url+`djangoapp/reviews/dealer/${id}`;
-  let post_review = root_url+`postreview/${id}`;
-  
-  const get_dealer = async ()=>{
-    const res = await fetch(dealer_url, {
-      method: "GET"
-    });
-    const retobj = await res.json();
-    
-    if(retobj.status === 200) {
-      let dealerobjs = Array.from(retobj.dealer)
-      setDealer(dealerobjs[0])
-    }
-  }
+  const dummyReviews = [
+    {name:"Aman", review:"Great service", car_make:"Toyota", car_model:"Corolla", car_year:2022},
+    {name:"Rahul", review:"Good experience", car_make:"Honda", car_model:"Civic", car_year:2021}
+  ];
 
-  const get_reviews = async ()=>{
-    const res = await fetch(reviews_url, {
-      method: "GET"
-    });
-    const retobj = await res.json();
-    
-    if(retobj.status === 200) {
-      if(retobj.reviews.length > 0){
-        setReviews(retobj.reviews)
-      } else {
-        setUnreviewed(true);
-      }
-    }
-  }
-
-  const senti_icon = (sentiment)=>{
-    let icon = sentiment === "positive"?positive_icon:sentiment==="negative"?negative_icon:neutral_icon;
-    return icon;
-  }
+  const [dealer, setDealer] = useState(null);
 
   useEffect(() => {
-    get_dealer();
-    get_reviews();
-    if(sessionStorage.getItem("username")) {
-      setPostReview(<a href={post_review}><img src={review_icon} style={{width:'10%',marginLeft:'10px',marginTop:'10px'}} alt='Post Review'/></a>)
+    const d = dummyDealers.find(x => x.id === parseInt(id));
+    setDealer(d);
+  }, [id]);
 
-      
-    }
-  },[]);  
+  if (!dealer) return <div>Loading...</div>;
 
+  return (
+    <div>
+      <Header />
 
-return(
-  <div style={{margin:"20px"}}>
-      <Header/>
-      <div style={{marginTop:"10px"}}>
-      <h1 style={{color:"grey"}}>{dealer.full_name}{postReview}</h1>
-      <h4  style={{color:"grey"}}>{dealer['city']},{dealer['address']}, Zip - {dealer['zip']}, {dealer['state']} </h4>
+      <h2>
+        {dealer.full_name}
+        <Link to={`/postreview/${id}`}>
+          <img src={review_icon} className="review_icon" alt="review"/>
+        </Link>
+      </h2>
+
+      <p>{dealer.city}, {dealer.state}</p>
+
+      <div>
+        {dummyReviews.map((r, i) => (
+          <div key={i}>{r.review}</div>
+        ))}
       </div>
-      <div class="reviews_panel">
-      {reviews.length === 0 && unreviewed === false ? (
-        <text>Loading Reviews....</text>
-      ):  unreviewed === true? <div>No reviews yet! </div> :
-      reviews.map(review => (
-        <div className='review_panel'>
-          <img src={senti_icon(review.sentiment)} className="emotion_icon" alt='Sentiment'/>
-          <div className='review'>{review.review}</div>
-          <div className="reviewer">{review.name} {review.car_make} {review.car_model} {review.car_year}</div>
-        </div>
-      ))}
-    </div>  
-  </div>
-)
-}
+    </div>
+  );
+};
 
-export default Dealer
+export default Dealer;

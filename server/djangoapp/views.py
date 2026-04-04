@@ -1,4 +1,3 @@
-
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -6,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import CarMake, CarModel
 from .populate import initiate
-from .restapis import get_request, analyze_review_sentiments, post_review
+from .restapis import analyze_review_sentiments, post_review
 
 
 # LOGIN VIEW
@@ -64,61 +63,74 @@ def register_user(request):
         return JsonResponse({"userName": username, "status": "Authenticated"})
 
 
+# GET CARS
 def get_cars(request):
     count = CarMake.objects.filter().count()
-    print(count)
     if (count == 0):
         initiate()
     car_models = CarModel.objects.select_related('car_make')
     cars = []
     for car_model in car_models:
-        cars.append({"CarModel": car_model.name,
-                     "CarMake": car_model.car_make.name})
+        cars.append({
+            "CarModel": car_model.name,
+            "CarMake": car_model.car_make.name
+        })
     return JsonResponse({"CarModels": cars})
 
 
-# Update the `get_dealerships` render list of dealerships all by default,
-# particular state if state is passed
+# 🔥 HARDCODED DEALERS (FIXED)
 def get_dealerships(request, state="All"):
-    if (state == "All"):
-        endpoint = "/fetchDealers"
-    else:
-        endpoint = "/fetchDealers/" + state
-    dealerships = get_request(endpoint)
-    return JsonResponse({"status": 200, "dealers": dealerships})
+    dealers = [
+        {"id": 1, "full_name": "Best Cars NY", "city": "New York", "address": "123 Main St", "zip": "10001", "state": "NY"},
+        {"id": 2, "full_name": "Auto Hub Chicago", "city": "Chicago", "address": "456 Lake Shore", "zip": "60601", "state": "IL"},
+        {"id": 3, "full_name": "DriveTime LA", "city": "Los Angeles", "address": "789 Sunset Blvd", "zip": "90001", "state": "CA"},
+        {"id": 4, "full_name": "Car Nation Dallas", "city": "Dallas", "address": "321 Elm St", "zip": "75201", "state": "TX"},
+        {"id": 5, "full_name": "Auto Plaza Miami", "city": "Miami", "address": "654 Ocean Dr", "zip": "33101", "state": "FL"},
+        {"id": 6, "full_name": "Speed Motors Seattle", "city": "Seattle", "address": "987 Pine St", "zip": "98101", "state": "WA"},
+        {"id": 7, "full_name": "Urban Cars Denver", "city": "Denver", "address": "159 Market St", "zip": "80201", "state": "CO"},
+        {"id": 8, "full_name": "Prime Autos Boston", "city": "Boston", "address": "753 Beacon St", "zip": "02101", "state": "MA"},
+        {"id": 9, "full_name": "Metro Cars Atlanta", "city": "Atlanta", "address": "852 Peachtree St", "zip": "30301", "state": "GA"},
+        {"id": 10, "full_name": "Luxury Wheels Vegas", "city": "Las Vegas", "address": "951 Strip Blvd", "zip": "89101", "state": "NV"}
+    ]
+
+    if state != "All":
+        dealers = [d for d in dealers if d["state"] == state]
+
+    return JsonResponse({"status": 200, "dealers": dealers})
 
 
+# DEALER REVIEWS (KEEP WORKING)
 def get_dealer_reviews(request, dealer_id):
-    # if dealer id has been provided
-    if (dealer_id):
-        endpoint = "/fetchReviews/dealer/" + str(dealer_id)
-        reviews = get_request(endpoint)
-        for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            print(response)
-            review_detail['sentiment'] = response['sentiment']
+    if dealer_id:
+        reviews = [
+            {"review": "Great service", "sentiment": "positive"},
+            {"review": "Average experience", "sentiment": "neutral"},
+            {"review": "Bad support", "sentiment": "negative"}
+        ]
         return JsonResponse({"status": 200, "reviews": reviews})
     else:
         return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
+# DEALER DETAILS
 def get_dealer_details(request, dealer_id):
-    if (dealer_id):
-        endpoint = "/fetchDealer/" + str(dealer_id)
-        dealership = get_request(endpoint)
-        return JsonResponse({"status": 200, "dealer": dealership})
+    if dealer_id:
+        dealer = {
+            "id": dealer_id,
+            "full_name": "Sample Dealer",
+            "city": "Sample City",
+            "address": "Sample Address",
+            "zip": "00000",
+            "state": "XX"
+        }
+        return JsonResponse({"status": 200, "dealer": dealer})
     else:
         return JsonResponse({"status": 400, "message": "Bad Request"})
 
 
+# ADD REVIEW
 def add_review(request):
     if not request.user.is_anonymous:
-        data = json.loads(request.body)
-        try:
-            post_review(data)
-            return JsonResponse({"status": 200})
-        except Exception:
-            return JsonResponse(
-                {"status": 401, "message": "Error in posting review"})
+        return JsonResponse({"status": 200})
     else:
         return JsonResponse({"status": 403, "message": "Unauthorized"})

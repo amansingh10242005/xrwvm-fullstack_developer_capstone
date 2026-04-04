@@ -8,10 +8,11 @@ SECRET_KEY = (
 )
 
 DEBUG = True
+ALLOWED_HOSTS = ["*"]
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.cognitiveclass.ai"
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
